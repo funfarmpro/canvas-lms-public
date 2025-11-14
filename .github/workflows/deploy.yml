@@ -30,7 +30,7 @@ jobs:
       - name: Set env variable
         id: assign
         run: |
-          if [[ "${{ github.ref_name }}" == "main" ]]; then
+          if [[ "${{ github.ref_name }}" == "funfarm" ]]; then
             echo "TGT_ENV=development" >> "$GITHUB_OUTPUT"
           else
             TGT_ENV=`echo ${{ github.ref_name }} | sed 's/-lkapi$//g' | sed -e 's|/|-|g' -e 's|_|-|g'`
