@@ -13,7 +13,7 @@ on:
 env:
   REGISTRY: ghcr.io
   API: funfarmpro/canvas-lms
-  CONFIG_REPO: funfarmpro/canvas-lms.git
+  CONFIG_REPO: funfarmpro/canvas-lms-config.git
   TAG: ${{ github.sha }}
   APP_ENV: development
 
@@ -66,6 +66,7 @@ jobs:
           TGT_ENV: ${{ needs.setenv.outputs.TGT_ENV }}
         uses: docker/build-push-action@v3
         with:
+          file: ./Dockerfile.production
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.API }}:${{ env.TAG }}, ${{ env.REGISTRY }}/${{ env.API }}:${{ env.TGT_ENV }}
 
