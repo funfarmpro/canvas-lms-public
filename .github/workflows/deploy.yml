@@ -10,6 +10,10 @@ on:
       - 'ui/**'
       - 'packages/**'
 
+permissions:
+  contents: read
+  packages: write
+
 env:
   REGISTRY: ghcr.io
   API: funfarmpro/canvas-lms
@@ -58,7 +62,7 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
-          username: ${{ vars.GHCR_USER }}
+          username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push Canvas
