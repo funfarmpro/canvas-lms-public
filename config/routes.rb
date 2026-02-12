@@ -2068,6 +2068,11 @@ CanvasRails::Application.routes.draw do
       post "accounts/:account_id/developer_keys/:developer_key_id/developer_key_account_bindings", action: :create_or_update
     end
 
+    scope(controller: :question_banks_api) do
+      get "courses/:course_id/question_banks/:question_bank_id/questions", action: :questions, as: "course_question_bank_questions"
+      get "accounts/:account_id/question_banks/:question_bank_id/questions", action: :questions, as: "account_question_bank_questions"
+    end
+
     scope(controller: :developer_keys) do
       delete "developer_keys/:id", action: :destroy
       put "developer_keys/:id", action: :update
