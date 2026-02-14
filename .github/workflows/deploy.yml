@@ -77,8 +77,7 @@ jobs:
   commit_api2env:
     name: Commit API to APP_ENV
     needs: [setenv, package]
-    if: false
-    #if: ${{ success() || needs.package.result == 'skipped' }}
+    if: ${{ success() || needs.package.result == 'skipped' }}
     runs-on: ubuntu-latest
     environment: "development"
     concurrency: "api"
@@ -90,6 +89,6 @@ jobs:
         uses: ./.github/actions/commit_to_config_repo
         with:
           image: ${{ env.API }}
-          target_repo: ${{ env.CONFIG_REPO }}
+          target_repo: ${{ secrets.CONFIG_REPO }}
           target_env: ${{ needs.setenv.outputs.TGT_ENV }}
           gh_token: ${{ secrets.GHCR_RW_PAT }}
