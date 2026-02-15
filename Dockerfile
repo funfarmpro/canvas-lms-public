@@ -90,3 +90,6 @@ RUN set -eux; \
     /home/docker/.bundle/ \
     /home/docker/.cache/yarn \
     /home/docker/.gem/
+
+RUN git clone https://github.com/instructure/QTIMigrationTool.git vendor/QTIMigrationTool
+RUN chmod +x vendor/QTIMigrationTool/migrate.py
