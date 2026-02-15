@@ -1,0 +1,58 @@
+name: 'Update target config repository'
+description: 'Update image tag for target environment and repository'
+
+inputs:
+  image:
+    required: true
+    description: Target image
+  target_repo:
+    required: true
+    description: Target repository
+  target_env:
+    required: true
+    description: Target environment
+  gh_token:
+    required: true
+    description: Github token to update repository
+
+outputs:
+  deploy_result:
+    description: Flag if deploy was successfull
+    value: ${{ steps.vars.outputs.deploy_result }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout config repository
+      uses: actions/checkout@v4
+      with:
+        repository: ${{ inputs.target_repo }}
+        token: ${{ inputs.gh_token }}
+        ref: main
+      
+    - name: Update image tag
+      shell: bash
+      working-directory: ./overlays/${{ inputs.target_env }}
+      run: |
+          kustomize edit set image ${{ env.REGISTRY }}/${{ inputs.image }}=${{ env.REGISTRY }}/${{ inputs.image }}:${{ env.TAG }}
+
+    - name: Commit and push
+      shell: bash
+      working-directory: ./
+      run: |
+          git config user.name 'dthapostle'
+          git config user.email 'dthapostle@funfarm.pro'
+          git commit -am "[${{ inputs.target_env }}] Publish new version: ${{ env.TAG }}"
+          git pull -r && git push || echo 'no changes'
+
+    - name: Return orig repository
+      uses: actions/checkout@v4
+      with:
+        repository: funfarmpro/canvas-lms-public
+        token: ${{ inputs.gh_token }}
+        ref: main
+
+    - name: Set success result
+      id: vars
+      run: echo "deploy_result=success" >> $GITHUB_OUTPUT
+      shell: bash
