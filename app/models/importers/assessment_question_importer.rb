@@ -72,7 +72,13 @@ module Importers
       questions.each do |question|
         question_data[:aq_data][question["migration_id"]] = question
 
-        bank_mig_id = question[:question_bank_migration_id] || CC::CCHelper.create_key(default_title, "assessment_question_bank")
+        force_selected_bank = migration.replace_question_bank_content? && default_bank.present?
+        bank_mig_id =
+          if force_selected_bank
+            default_bank.migration_id || CC::CCHelper.create_key(default_title, "assessment_question_bank")
+          else
+            question[:question_bank_migration_id] || CC::CCHelper.create_key(default_title, "assessment_question_bank")
+          end
         next unless migration.import_object?("assessment_question_banks", bank_mig_id)
 
         # for canvas imports/copies, don't auto generate banks for quizzes
@@ -122,6 +128,16 @@ module Importers
         rescue
           migration.add_import_warning(t("#migration.quiz_question_type", "Quiz Question"), question[:question_name], $!)
         end
+      end
+
+      if migration.replace_question_bank_content? && default_bank
+        imported_question_ids = question_data[:aq_data].values.filter_map do |aq|
+          aq["assessment_question_id"] || aq[:assessment_question_id]
+        end
+        imported_question_ids = AssessmentQuestion.where(id: imported_question_ids, assessment_question_bank_id: default_bank.id).pluck(:id)
+        questions_to_remove = default_bank.assessment_questions.active
+        questions_to_remove = questions_to_remove.where.not(id: imported_question_ids) if imported_question_ids.present?
+        questions_to_remove.update_all(workflow_state: "deleted")
       end
 
       if migration.context.is_a?(Course)

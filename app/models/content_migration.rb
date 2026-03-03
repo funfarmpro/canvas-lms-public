@@ -26,6 +26,7 @@ class ContentMigration < ActiveRecord::Base
 
   belongs_to :context, polymorphic: [:course, :account, :group, { context_user: "User" }]
   validate :valid_date_shift_options
+  validate :valid_replace_question_bank_settings
   belongs_to :user
   belongs_to :attachment
   belongs_to :overview_attachment, class_name: "Attachment"
@@ -227,6 +228,14 @@ class ContentMigration < ActiveRecord::Base
 
   def question_bank_id
     migration_settings[:question_bank_id]
+  end
+
+  def replace_question_bank_content=(val)
+    migration_settings[:replace_question_bank_content] = Canvas::Plugin.value_to_boolean(val)
+  end
+
+  def replace_question_bank_content?
+    Canvas::Plugin.value_to_boolean(migration_settings[:replace_question_bank_content])
   end
 
   def course_archive_download_url=(url)
@@ -1031,6 +1040,20 @@ class ContentMigration < ActiveRecord::Base
         errors.add(:date_shift_options, t("shift_dates or remove_dates cannot be combined with send_item_notifications"))
       end
     end
+  end
+
+  def valid_replace_question_bank_settings
+    return unless replace_question_bank_content?
+
+    if question_bank_id.blank? || question_bank_id.to_s == "new_question_bank"
+      errors.add(:migration_settings, t("replace_question_bank_requires_existing_bank", "Select an existing question bank to replace its content."))
+      return
+    end
+
+    return unless context.respond_to?(:assessment_question_banks)
+    return if context.assessment_question_banks.active.where(id: question_bank_id).exists?
+
+    errors.add(:migration_settings, t("replace_question_bank_invalid_bank", "Selected question bank is not available for this context."))
   end
 
   scope :for_context, ->(context) { where(context_id: context, context_type: context.class.to_s) }

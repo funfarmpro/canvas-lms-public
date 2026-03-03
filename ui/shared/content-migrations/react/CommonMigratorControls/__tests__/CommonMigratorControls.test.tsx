@@ -84,7 +84,31 @@ describe('CommonMigratorControls', () => {
 
     expect(onSubmit).toHaveBeenCalledWith(
       expect.objectContaining({
-        settings: expect.objectContaining({overwrite_quizzes: true}),
+        settings: expect.objectContaining({
+          overwrite_quizzes: true,
+          replace_question_bank_content: false,
+        }),
+      }),
+    )
+  })
+
+  it('calls onSubmit with replace_question_bank_content', async () => {
+    renderComponent({canOverwriteAssessmentContent: true})
+
+    await userEvent.click(
+      screen.getByRole('checkbox', {name: /Overwrite assessment content with matching IDs/}),
+    )
+    await userEvent.click(
+      screen.getByRole('checkbox', {name: /Replace selected question bank content/}),
+    )
+    await userEvent.click(screen.getByRole('button', {name: 'Add to Import Queue'}))
+
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        settings: expect.objectContaining({
+          overwrite_quizzes: true,
+          replace_question_bank_content: true,
+        }),
       }),
     )
   })
@@ -156,7 +180,11 @@ describe('CommonMigratorControls', () => {
         old_start_date: '',
       },
       errored: false,
-      settings: {import_quizzes_next: false, overwrite_quizzes: false},
+      settings: {
+        import_quizzes_next: false,
+        overwrite_quizzes: false,
+        replace_question_bank_content: false,
+      },
     })
   })
 
@@ -242,6 +270,7 @@ describe('CommonMigratorControls', () => {
     expect(
       getByRole('checkbox', {name: /Overwrite assessment content with matching IDs/}),
     ).toBeDisabled()
+    expect(getByRole('checkbox', {name: /Replace selected question bank content/})).toBeDisabled()
   })
 
   it('call setIsQuestionBankDisabled after "Import existing quizzes as New Quizzes" checked', async () => {

@@ -57,6 +57,7 @@ type CommonMigratorControlsProps = {
 }
 const nqCheckboxId = 'existing_quizzes_as_new_quizzes'
 const overwriteAssesmentCheckboxId = 'overwrite_assessment_content'
+const replaceQuestionBankContentCheckboxId = 'replace_question_bank_content'
 const adjustDatesCheckboxId = 'adjust_dates[enabled]'
 
 const generateNewQuizzesLabel = () => {
@@ -123,6 +124,26 @@ const generateOverwriteLabel = () => (
   </>
 )
 
+const generateReplaceQuestionBankLabel = () => (
+  <>
+    <Text>{I18n.t('Replace selected question bank content')}</Text>
+    <span style={{position: 'absolute', marginTop: '-0.55em'}}>
+      <InfoButton
+        heading={I18n.t('Replace question bank content')}
+        body={
+          <Text>
+            {I18n.t(
+              'When enabled, questions that are currently in the selected destination question bank but are not in this import package will be removed.',
+            )}
+          </Text>
+        }
+        buttonLabel={I18n.t('Replace Question Bank Content Help Icon')}
+        modalLabel={I18n.t('Replace Question Bank Content Help Modal')}
+      />
+    </span>
+  </>
+)
+
 export const CommonMigratorControls = ({
   canSelectContent = false,
   canImportAsNewQuizzes = false,
@@ -149,6 +170,7 @@ export const CommonMigratorControls = ({
     !!ENV.NEW_QUIZZES_MIGRATION_DEFAULT,
   )
   const [overwriteAssessmentContent, setOverwriteAssessmentContent] = useState<boolean>(false)
+  const [replaceQuestionBankContent, setReplaceQuestionBankContent] = useState<boolean>(false)
   const [showAdjustDates, setShowAdjustDates] = useState<boolean>(false)
   const [dateAdjustmentConfig, setDateAdjustmentConfig] = useState<DateAdjustmentConfig>({
     adjust_dates: {
@@ -199,6 +221,8 @@ export const CommonMigratorControls = ({
     }
     canImportAsNewQuizzes && (data.settings.import_quizzes_next = importAsNewQuizzes)
     canOverwriteAssessmentContent && (data.settings.overwrite_quizzes = overwriteAssessmentContent)
+    canOverwriteAssessmentContent &&
+      (data.settings.replace_question_bank_content = replaceQuestionBankContent)
     onSubmit(data)
   }, [
     selectiveImport,
@@ -211,6 +235,7 @@ export const CommonMigratorControls = ({
     importAsNewQuizzes,
     canOverwriteAssessmentContent,
     overwriteAssessmentContent,
+    replaceQuestionBankContent,
     onSubmit,
   ])
 
@@ -243,7 +268,21 @@ export const CommonMigratorControls = ({
             value={overwriteAssesmentCheckboxId}
             disabled={isSubmitting}
             label={generateOverwriteLabel()}
-            onChange={e => setOverwriteAssessmentContent(e.target.checked)}
+            onChange={e => {
+              const checked = e.target.checked
+              setOverwriteAssessmentContent(checked)
+              if (!checked) {
+                setReplaceQuestionBankContent(false)
+              }
+            }}
+          />,
+          <Checkbox
+            key={replaceQuestionBankContentCheckboxId}
+            name={replaceQuestionBankContentCheckboxId}
+            value={replaceQuestionBankContentCheckboxId}
+            disabled={isSubmitting || !overwriteAssessmentContent}
+            label={generateReplaceQuestionBankLabel()}
+            onChange={e => setReplaceQuestionBankContent(e.target.checked)}
           />,
         ]
       : []),

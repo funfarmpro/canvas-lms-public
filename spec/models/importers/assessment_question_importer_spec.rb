@@ -162,6 +162,57 @@ describe "Assessment Question import from hash" do
     expect(bank_aq.root_account_id).to eq bank.root_account_id
     expect(bank_aq.root_account_id).to eq @course.root_account_id
   end
+
+  it "replaces selected question bank content when enabled" do
+    context = course_model
+    target_bank = context.assessment_question_banks.create!(title: "Target bank")
+    untouched_bank = context.assessment_question_banks.create!(title: "Untouched bank")
+
+    AssessmentQuestion.create!(
+      assessment_question_bank: target_bank,
+      migration_id: "keep-mig-id",
+      workflow_state: "active",
+      question_data: { question_name: "Keep question", question_type: "multiple_choice_question", answers: [] }
+    )
+    AssessmentQuestion.create!(
+      assessment_question_bank: target_bank,
+      migration_id: "remove-mig-id",
+      workflow_state: "active",
+      question_data: { question_name: "Remove question", question_type: "multiple_choice_question", answers: [] }
+    )
+    AssessmentQuestion.create!(
+      assessment_question_bank: untouched_bank,
+      migration_id: "other-bank-mig-id",
+      workflow_state: "active",
+      question_data: { question_name: "Other bank question", question_type: "multiple_choice_question", answers: [] }
+    )
+
+    imported_question = get_import_data("cengage", "question")
+    target_bank_migration_id = CC::CCHelper.create_key(target_bank.title, "assessment_question_bank")
+    imported_question["migration_id"] = "keep-mig-id"
+    imported_question[:migration_id] = "keep-mig-id"
+    imported_question["question_bank_migration_id"] = target_bank_migration_id
+    imported_question[:question_bank_migration_id] = target_bank_migration_id
+    imported_question["question_bank_name"] = target_bank.title
+    imported_question[:question_bank_name] = target_bank.title
+    data = {
+      "assessment_question_banks" => [{ "migration_id" => target_bank_migration_id, "title" => target_bank.title }],
+      "assessment_questions" => { "assessment_questions" => [imported_question] }
+    }
+
+    migration = ContentMigration.create!(context:)
+    migration.question_bank_id = target_bank.id
+    migration.migration_settings[:overwrite_quizzes] = true
+    migration.migration_settings[:replace_question_bank_content] = true
+
+    initial_bank_ids = context.assessment_question_banks.active.pluck(:id).sort
+    Importers::AssessmentQuestionImporter.process_migration(data, migration)
+
+    expect(target_bank.assessment_questions.active.pluck(:migration_id)).to contain_exactly("keep-mig-id")
+    expect(target_bank.assessment_questions.where(migration_id: "remove-mig-id").first.workflow_state).to eq "deleted"
+    expect(untouched_bank.assessment_questions.active.pluck(:migration_id)).to contain_exactly("other-bank-mig-id")
+    expect(context.assessment_question_banks.active.pluck(:id).sort).to eq(initial_bank_ids)
+  end
 end
 
 def test_question_import(hash_name, system)
