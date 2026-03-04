@@ -31,11 +31,20 @@ OverwriteAssessmentContentView.prototype.template = template
 
 OverwriteAssessmentContentView.prototype.events = {
   'change #overwriteAssessmentContent': 'setAttribute',
+  'change #replaceQuestionBankContent': 'setAttribute',
 }
 
 OverwriteAssessmentContentView.prototype.setAttribute = function () {
   const settings = this.model.get('settings') || {}
-  settings.overwrite_quizzes = !!this.$el.find('#overwriteAssessmentContent').is(':checked')
+  const overwrite = !!this.$el.find('#overwriteAssessmentContent').is(':checked')
+  const $replace = this.$el.find('#replaceQuestionBankContent')
+  if (!overwrite) {
+    $replace.prop('checked', false)
+  }
+  $replace.prop('disabled', !overwrite)
+
+  settings.overwrite_quizzes = overwrite
+  settings.replace_question_bank_content = overwrite && !!$replace.is(':checked')
   return this.model.set('settings', settings)
 }
 
