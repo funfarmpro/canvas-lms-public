@@ -512,6 +512,9 @@ class ContentMigration < ActiveRecord::Base
     unless migration_settings.key?(:overwrite_quizzes)
       migration_settings[:overwrite_quizzes] = for_course_copy? || for_master_course_import? || (migration_type && migration_type == "canvas_cartridge_importer")
     end
+    if migration_settings[:overwrite_quizzes] && !migration_settings.key?(:overwrite_questions)
+      migration_settings[:overwrite_questions] = true
+    end
     migration_settings.reverse_merge!(prefer_existing_tools: true) if migration_type == "common_cartridge_importer" # default to true
 
     check_quiz_id_prepender

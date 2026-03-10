@@ -2711,4 +2711,17 @@ describe ContentMigration do
       expect(@cm.import_module_item?("other")).to be false
     end
   end
+
+  describe "#set_default_settings" do
+    it "does not set id_prepender when overwrite_quizzes is enabled" do
+      course = course_model
+      cm = ContentMigration.new(context: course, migration_type: "qti_converter")
+      cm.migration_settings["overwrite_quizzes"] = true
+
+      cm.set_default_settings
+
+      expect(cm.migration_settings["overwrite_questions"]).to be true
+      expect(cm.migration_settings["id_prepender"]).to be_nil
+    end
+  end
 end

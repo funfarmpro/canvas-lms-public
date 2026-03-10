@@ -2071,6 +2071,10 @@ CanvasRails::Application.routes.draw do
     scope(controller: :question_banks_api) do
       get "courses/:course_id/question_banks/:question_bank_id/questions", action: :questions, as: "course_question_bank_questions"
       get "accounts/:account_id/question_banks/:question_bank_id/questions", action: :questions, as: "account_question_bank_questions"
+
+      get "question_banks", action: :index, as: "question_banks"
+      get "question_banks/full", action: :index_with_questions, as: "question_banks_full"
+      get "question_banks/:question_bank_id/questions", action: :questions_standalone, as: "question_bank_questions_standalone"
     end
 
     scope(controller: :developer_keys) do
