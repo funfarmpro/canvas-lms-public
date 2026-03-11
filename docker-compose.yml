@@ -8,7 +8,7 @@ services:
       - redis
     environment:
       POSTGRES_PASSWORD: sekret
-      QUESTION_BANKS_API_KEY: qb_sk_f7a2e9c1d4b8m3x6k0p5w8r2t9y4u1
+      QUESTION_BANKS_API_KEY: ${QUESTION_BANKS_API_KEY}
 
   jobs:
     <<: *WEB
