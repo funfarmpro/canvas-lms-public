@@ -92,18 +92,24 @@ class QuestionBanksApiController < ApplicationController
     api_key = request.headers["X-API-Key"]
     expected_key = ENV["QUESTION_BANKS_API_KEY"].presence
 
+    Rails.logger.info("[QB-API-AUTH] api_key present: #{api_key.present?}, expected_key present: #{expected_key.present?}, match: #{expected_key && api_key == expected_key}")
+    Rails.logger.info("[QB-API-AUTH] api_key=#{api_key.inspect}, expected_key=#{expected_key.inspect}")
+
     if expected_key && api_key == expected_key
       @api_key_auth = true
+      Rails.logger.info("[QB-API-AUTH] Authenticated via API key")
       return
     end
 
     @api_key_auth = false
 
     if api_key.present?
+      Rails.logger.warn("[QB-API-AUTH] Invalid API key provided")
       render json: { error: "Invalid API key" }, status: :unauthorized
       return
     end
 
+    Rails.logger.info("[QB-API-AUTH] No API key, falling back to require_user")
     require_user
   end
 
