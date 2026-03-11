@@ -19,8 +19,9 @@
 #
 
 class QuestionBanksApiController < ApplicationController
+  skip_before_action :verify_authenticity_token, only: [:index, :index_with_questions, :questions_standalone]
   before_action :require_context, only: [:questions]
-  before_action :require_user, only: [:index, :index_with_questions, :questions_standalone]
+  before_action :authenticate_by_api_key_or_user, only: [:index, :index_with_questions, :questions_standalone]
 
   # @API List questions in a classic question bank (context-based)
   #
@@ -43,8 +44,9 @@ class QuestionBanksApiController < ApplicationController
 
   # @API List all accessible question banks
   #
-  # Returns all question banks the current user can access.
-  # Admins see all banks; teachers/TAs/designers see banks from their courses.
+  # Authenticate via X-API-Key header or Bearer token.
+  # With API key: returns all banks (admin-level access).
+  # With Bearer token: admins see all banks, teachers see their courses' banks.
   #
   # @returns [AssessmentQuestionBank]
   def index
@@ -54,7 +56,7 @@ class QuestionBanksApiController < ApplicationController
 
   # @API List all accessible question banks with questions
   #
-  # Returns all question banks with their questions embedded.
+  # Authenticate via X-API-Key header or Bearer token.
   # Each bank includes a "questions" array with full question_data.
   #
   # @returns [AssessmentQuestionBank]
@@ -69,13 +71,13 @@ class QuestionBanksApiController < ApplicationController
 
   # @API List questions in a question bank (standalone)
   #
-  # Returns paginated questions from a bank by bank ID, without requiring
-  # a course context. Admins can access any bank; others need read access.
+  # Authenticate via X-API-Key header or Bearer token.
+  # Returns paginated questions from a bank by bank ID.
   #
   # @returns {"pages": Integer, "questions": [AssessmentQuestion]}
   def questions_standalone
     bank = AssessmentQuestionBank.active.find(params[:question_bank_id])
-    if account_admin? || bank.grants_right?(@current_user, session, :read)
+    if @api_key_auth || account_admin? || bank.grants_right?(@current_user, session, :read)
       questions = bank.assessment_questions.active
       questions = Api.paginate(questions, self, request.original_url, default_per_page: 50)
       render json: { pages: questions.total_pages, questions: questions }
@@ -86,8 +88,27 @@ class QuestionBanksApiController < ApplicationController
 
   private
 
+  def authenticate_by_api_key_or_user
+    api_key = request.headers["X-API-Key"]
+    expected_key = ENV["QUESTION_BANKS_API_KEY"].presence
+
+    if expected_key && api_key == expected_key
+      @api_key_auth = true
+      return
+    end
+
+    @api_key_auth = false
+
+    if api_key.present?
+      render json: { error: "Invalid API key" }, status: :unauthorized
+      return
+    end
+
+    require_user
+  end
+
   def accessible_banks
-    if account_admin?
+    if @api_key_auth || account_admin?
       AssessmentQuestionBank.active
         .where(context_type: "Course")
         .order(:title)
@@ -102,6 +123,8 @@ class QuestionBanksApiController < ApplicationController
   end
 
   def account_admin?
+    return false unless @current_user
+
     @_account_admin ||= begin
       Account.site_admin.account_users.active.where(user_id: @current_user.id).exists? ||
         Account.default.account_users.active.where(user_id: @current_user.id).exists?
