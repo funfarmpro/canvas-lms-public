@@ -9,6 +9,7 @@ on:
       - 'yarn.lock'
       - 'ui/**'
       - 'packages/**'
+      - 'app/**'
 
 permissions:
   contents: read
