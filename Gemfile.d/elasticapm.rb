@@ -1,3 +1,1 @@
-group :elastic_apm do
-  gem "elastic-apm"
-end
+gem "elastic-apm"
