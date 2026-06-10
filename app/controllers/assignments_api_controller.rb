@@ -1104,6 +1104,10 @@ class AssignmentsApiController < ApplicationController
 
       DatesOverridable.preload_override_data_for_objects(assignments)
 
+      # Avoid N+1 on post_policies: assignment_json calls post_manually? for
+      # every assignment, which loads the post_policy association lazily.
+      ActiveRecord::Associations.preload(assignments, :post_policy)
+
       assignments.map do |assignment|
         visibility_array = assignment_visibilities[assignment.id] if assignment_visibilities
         submission = submissions[assignment.id]
