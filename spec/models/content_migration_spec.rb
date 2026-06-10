@@ -611,6 +611,7 @@ describe ContentMigration do
     cm = @cm
     cm.migration_type = "qti_converter"
     cm.migration_settings["import_immediately"] = true
+    cm.migration_settings["import_quizzes"] = true # opt back into classic quiz creation (banks-only is the QTI default)
     cm.save!
 
     package_path = File.join("#{File.dirname(__FILE__)}/../fixtures/migration/media_quiz_qti.zip")
@@ -670,6 +671,7 @@ describe ContentMigration do
     cm = @cm
     cm.migration_type = "qti_converter"
     cm.migration_settings["import_immediately"] = true
+    cm.migration_settings["import_quizzes"] = true # opt back into classic quiz creation (banks-only is the QTI default)
 
     # having this set used to always prepend the id, and it would get set it there were any other imported quizzes/questions
     cm.migration_settings["id_prepender"] = "thisusedtobreakstuff"
@@ -731,6 +733,7 @@ describe ContentMigration do
     cm = @cm
     cm.migration_type = "qti_converter"
     cm.migration_settings["import_immediately"] = true
+    cm.migration_settings["import_quizzes"] = true # opt back into classic quiz creation (banks-only is the QTI default)
     cm.save!
 
     package_path = File.join("#{File.dirname(__FILE__)}/../fixtures/migration/quiz_qti.zip")
@@ -764,6 +767,7 @@ describe ContentMigration do
     cm = @cm
     cm.migration_type = "qti_converter"
     cm.migration_settings["import_immediately"] = true
+    cm.migration_settings["import_quizzes"] = true # opt back into classic quiz creation (banks-only is the QTI default)
     cm.save!
 
     package_path = File.join("#{File.dirname(__FILE__)}/../fixtures/migration/plaintext_qti.zip")

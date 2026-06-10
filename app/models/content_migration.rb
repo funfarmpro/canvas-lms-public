@@ -238,6 +238,27 @@ class ContentMigration < ActiveRecord::Base
     Canvas::Plugin.value_to_boolean(migration_settings[:replace_question_bank_content])
   end
 
+  def import_quizzes=(val)
+    migration_settings[:import_quizzes] = Canvas::Plugin.value_to_boolean(val)
+  end
+
+  # QTI imports should only create the question bank, not a quiz. The bank is
+  # built independently by AssessmentQuestionImporter, so skipping quiz creation
+  # avoids leaving behind an unwanted quiz the user has to delete by hand.
+  # Can be overridden programmatically via migration_settings[:import_quizzes].
+  def import_quizzes?
+    # New Quizzes imports reuse the quiz importer to build NQ assignments, so the
+    # banks-only default must never suppress them — checked first so an explicit
+    # import_quizzes override can't accidentally break an NQ import.
+    return true if quizzes_next_import_process? || import_quizzes_next?
+
+    if migration_settings.key?(:import_quizzes)
+      return Canvas::Plugin.value_to_boolean(migration_settings[:import_quizzes])
+    end
+
+    migration_type != "qti_converter"
+  end
+
   def course_archive_download_url=(url)
     migration_settings[:course_archive_download_url] = url
   end

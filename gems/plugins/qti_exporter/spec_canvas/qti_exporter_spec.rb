@@ -402,6 +402,19 @@ if Qti.migration_executable
       match_ignoring(data, respondus_questions, %w[id assessment_question_id match_id missing_links position prepped_for_import is_quiz_question_bank question_bank_migration_id quiz_question_id])
     end
 
+    it "creates only a question bank and no quiz by default" do
+      setup_migration(File.expand_path("fixtures/canvas_respondus_question_types.zip", __dir__))
+      # Simulate a production QTI import: no explicit import_quizzes opt-in.
+      @migration.migration_settings.delete(:import_quizzes)
+      @migration.save!
+      do_migration
+
+      expect(@course.quizzes.count).to eq 0
+      qb = @course.assessment_question_banks.last
+      expect(qb).to be_present
+      expect(qb.assessment_questions.size).to eq 9
+    end
+
     def match_ignoring(a, b, ignoring = []) # rubocop:disable Naming/MethodParameterName
       case a
       when Hash
@@ -430,7 +443,10 @@ if Qti.migration_executable
                                         user: @user)
       @migration.update_migration_settings({
                                              migration_type: "qti_converter",
-                                             flavor: Qti::Flavors::RESPONDUS
+                                             flavor: Qti::Flavors::RESPONDUS,
+                                             # QTI imports default to banks-only; these specs exercise quiz
+                                             # import mechanics, so they explicitly opt back into quizzes.
+                                             import_quizzes: true
                                            })
       @migration.save!
 

@@ -139,6 +139,10 @@ module Importers
     end
 
     def self.process_migration(data, migration, question_data)
+      # QTI imports only create a question bank (built by AssessmentQuestionImporter),
+      # not a quiz. Skip quiz creation entirely so users don't have to delete it.
+      return unless migration.import_quizzes?
+
       assessments = data["assessments"] ? data["assessments"]["assessments"] : []
       assessments ||= []
       assessments.each do |assessment|
