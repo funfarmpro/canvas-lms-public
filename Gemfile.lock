@@ -520,6 +520,7 @@ GEM
       nokogiri (~> 1.13, >= 1.13.0)
       rubyzip (>= 2.0, < 4)
     dogstatsd-ruby (5.7.1)
+    domain_name (0.6.20240107)
     dotenv (3.1.8)
     drb (2.2.3)
     dress_code (1.2.1)
@@ -528,6 +529,10 @@ GEM
       pygments.rb
       redcarpet
     dumb_delegator (1.1.0)
+    elastic-apm (4.8.0)
+      concurrent-ruby (~> 1.0)
+      http (>= 3.0)
+      ruby2_keywords
     encrypted_cookie_store-instructure (1.2.15)
       actionpack (>= 4.2, < 8.1)
     erb (5.1.1)
@@ -640,6 +645,11 @@ GEM
     headless (2.3.1)
     highline (3.1.2)
       reline
+    http (6.0.3)
+      http-cookie (~> 1.0)
+      llhttp (~> 0.6.1)
+    http-cookie (1.1.6)
+      domain_name (~> 0.5)
     httparty (0.23.1)
       csv
       mini_mime (>= 1.0.0)
@@ -746,6 +756,7 @@ GEM
       ffi (~> 1.0)
     link_header (0.0.8)
     lint_roller (1.1.0)
+    llhttp (0.6.1)
     logger (1.7.0)
     loofah (2.24.1)
       crass (~> 1.0.2)
@@ -769,7 +780,6 @@ GEM
     mini_magick (5.3.1)
       logger
     mini_mime (1.1.5)
-    mini_portile2 (2.8.9)
     minitest (5.26.0)
     mize (0.6.1)
     moodle2cc (0.2.47)
@@ -800,9 +810,6 @@ GEM
     net-smtp (0.5.1)
       net-protocol
     nio4r (2.7.4)
-    nokogiri (1.18.10)
-      mini_portile2 (~> 2.8.2)
-      racc (~> 1.4)
     nokogiri (1.18.10-aarch64-linux-gnu)
       racc (~> 1.4)
     nokogiri (1.18.10-arm64-darwin)
@@ -1101,6 +1108,7 @@ GEM
     ruby-progressbar (1.13.0)
     ruby-rc4 (0.1.5)
     ruby-rtf (0.0.5)
+    ruby2_keywords (0.0.5)
     ruby2ruby (2.5.2)
       ruby_parser (~> 3.1)
       sexp_processor (~> 4.6)
@@ -1167,8 +1175,6 @@ GEM
       spring (>= 0.9.1)
     spring-commands-rubocop (0.4.0)
       spring (>= 1.0)
-    sqlite3 (2.7.4)
-      mini_portile2 (~> 2.8.0)
     sqlite3 (2.7.4-aarch64-linux-gnu)
     sqlite3 (2.7.4-arm64-darwin)
     sqlite3 (2.7.4-x86_64-darwin)
@@ -1265,7 +1271,6 @@ GEM
 PLATFORMS
   aarch64-linux
   arm64-darwin
-  ruby
   x86_64-darwin
   x86_64-linux
 
@@ -1341,6 +1346,7 @@ DEPENDENCIES
   dotenv (~> 3.0)
   dress_code (= 1.2.1)
   dynamic_settings!
+  elastic-apm
   encrypted_cookie_store-instructure (~> 1.2)
   escape_code (= 0.2)
   event_stream!
